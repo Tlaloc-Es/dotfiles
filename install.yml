@@ -1,0 +1,45 @@
+- name: 'apt: update & upgrade'
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    upgrade: safe
+  register: apt
+
+- name: Install packages with apt
+  become: yes
+  ansible.builtin.apt:
+    name:
+      - git
+      - tmux
+      - tilix
+      - jq
+      - build-essential
+      - curl
+      - htop
+      - flatpak
+      - wget
+      - gpg
+
+    state: present
+
+- name: Installing vscode
+  become: yes
+  shell: |
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+    install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+    sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+    rm -f packages.microsoft.gpg
+    apt-get install apt-transport-https
+    apt-get update
+    apt-get install code # or code-insiders
+
+- name: Enable flatpack
+  become: yes
+  shell: |
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+- name: Install obs
+  become: yes
+  shell: |
+    flatpak install flathub com.obsproject.Studio
+  
